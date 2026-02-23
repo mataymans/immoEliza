@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.immoEliza_env/
+data/*.jsonl
+data/*.csv

@@ -1,5 +1,5 @@
 import pandas as pd
-from utils import read_jsonl
+from src.utils import read_jsonl
 
 IN_FILE = "data/raw_rows.jsonl"
 OUT_FILE = "data/immovlan_clean.csv"

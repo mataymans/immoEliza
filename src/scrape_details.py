@@ -1,14 +1,17 @@
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from utils import read_jsonl, append_jsonl
-from get_with_retries import get_with_retries
-from parse_details import parse_detail
+from src.utils import read_jsonl, append_jsonl
+from src.get_with_retries import get_with_retries
+from src.parse_details import parse_detail
 
 URLS_FILE = "data/urls.jsonl"
 OUT_FILE = "data/raw_rows.jsonl"
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0",
+    "Accept-Language": "en-GB,en;q=0.9",
+}
 
 BAD_KEYWORDS = ["viager", "life sale", "life annuity", "bouquet", "rente"]
 
@@ -42,13 +45,17 @@ def scrape_one(item: dict) -> dict | None:
 def scrape_details(max_workers=24):
     items = list(read_jsonl(URLS_FILE) or [])
 
-    # resume: skip already scraped IDs
-    done = set()
+    # resume: skip already scraped IDs + URLs
+    done_ids = set()
+    done_urls = set()
     for r in read_jsonl(OUT_FILE) or []:
         if r.get("immovlan_id"):
-            done.add(r["immovlan_id"])
+            done_ids.add(r["immovlan_id"])
+        if r.get("url"):
+            done_urls.add(r["url"])
 
-    todo = [it for it in items if it.get("url") and it.get("url") not in set()]
+    # BUGFIX: previously compared against an always-empty set()
+    todo = [it for it in items if it.get("url") and it["url"] not in done_urls]
 
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         futures = [ex.submit(scrape_one, it) for it in todo]
@@ -56,9 +63,9 @@ def scrape_details(max_workers=24):
             row = fut.result()
             if not row:
                 continue
-            if row["immovlan_id"] in done:
+            if row["immovlan_id"] in done_ids:
                 continue
-            done.add(row["immovlan_id"])
+            done_ids.add(row["immovlan_id"])
             append_jsonl(OUT_FILE, row)
 
 

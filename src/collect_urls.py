@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-from utils import append_jsonl, read_jsonl, sleep_jitter
+from src.utils import append_jsonl, read_jsonl, sleep_jitter
 
 BASE_URL = "https://immovlan.be"
 OUTPUT_FILE = "data/urls.jsonl"

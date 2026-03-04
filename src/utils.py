@@ -61,12 +61,15 @@ def yesno_to_bin(s: str):
 
 def normalize_price_from_text(text: str):
     """
-    Captures prices with € AFTER the number.
+    Captures prices with € AFTER or BEFORE the number.
     Handles spaces / dots / commas / thin spaces.
     """
     if not text:
         return None
+    # 1) "250 000 €"  2) "€ 250 000"
     m = re.search(r"(\d[\d\s.,\u202F\u00A0]*)\s*€", text)
+    if not m:
+        m = re.search(r"€\s*(\d[\d\s.,\u202F\u00A0]*)", text)
     if not m:
         return None
     raw = clean_number_text(m.group(1))
